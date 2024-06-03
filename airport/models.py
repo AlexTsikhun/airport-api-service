@@ -21,7 +21,8 @@ class Route(models.Model):
         "Airport", on_delete=models.CASCADE, related_name="routes"
     )
     destination = models.ForeignKey(
-        "Airport", on_delete=models.CASCADE, ## or rename rel_name?
+        "Airport",
+        on_delete=models.CASCADE,  # or rename rel_name?
     )
     distance = models.IntegerField()
 
@@ -61,7 +62,7 @@ class Order(models.Model):
     user = get_user_model()
 
     def __str__(self):
-        return self.created_at #??
+        return self.created_at  # ??
 
 
 class Airport(models.Model):
