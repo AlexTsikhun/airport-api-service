@@ -21,7 +21,7 @@ class Route(models.Model):
         "Airport", on_delete=models.CASCADE, related_name="routes"
     )
     destination = models.ForeignKey(
-        "Airport", on_delete=models.CASCADE, related_name="routes"
+        "Airport", on_delete=models.CASCADE, ## or rename rel_name?
     )
     distance = models.IntegerField()
 
