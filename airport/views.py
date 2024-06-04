@@ -6,14 +6,16 @@ from airport.models import (
     Airport,
     Crew,
     Order,
-    Airplane
+    Airplane,
+    Route
 )
 from airport.serializers import (
     AirplaneTypeSerializer,
     AirportSerializer,
     CrewSerializer,
     OrderSerializer,
-    AirplaneSerializer
+    AirplaneSerializer,
+    RouteSerializer
 )
 
 
@@ -60,4 +62,14 @@ class AirplaneViewSet(
 ):
     queryset = Airplane.objects.all()
     serializer_class = AirplaneSerializer
+
+
+class RouteViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
+    queryset = Route.objects.all()
+    serializer_class = RouteSerializer
+
 
