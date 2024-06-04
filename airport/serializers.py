@@ -1,9 +1,11 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from airport.models import (
     AirplaneType,
     Airport,
-    Crew
+    Crew,
+    Order
 )
 
 
@@ -24,3 +26,8 @@ class CrewSerializer(serializers.ModelSerializer):
         model = Crew
         fields = ("id", "first_name", "last_name",)
 
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = "__all__"

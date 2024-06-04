@@ -4,12 +4,14 @@ from rest_framework import mixins
 from airport.models import (
     AirplaneType,
     Airport,
-    Crew
+    Crew,
+    Order
 )
 from airport.serializers import (
     AirplaneTypeSerializer,
     AirportSerializer,
-    CrewSerializer
+    CrewSerializer,
+    OrderSerializer
 )
 
 
@@ -39,4 +41,12 @@ class CrewViewSet(
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
 
+
+class OrderViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
 
