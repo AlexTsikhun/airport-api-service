@@ -5,7 +5,8 @@ from airport.models import (
     AirplaneType,
     Airport,
     Crew,
-    Order
+    Order,
+    Airplane
 )
 
 
@@ -31,3 +32,9 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
+
+
+class AirplaneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airplane
+        fields = ("id", "name", "rows", "seats_in_row", "airplane_type",)

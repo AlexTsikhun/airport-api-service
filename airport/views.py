@@ -5,13 +5,15 @@ from airport.models import (
     AirplaneType,
     Airport,
     Crew,
-    Order
+    Order,
+    Airplane
 )
 from airport.serializers import (
     AirplaneTypeSerializer,
     AirportSerializer,
     CrewSerializer,
-    OrderSerializer
+    OrderSerializer,
+    AirplaneSerializer
 )
 
 
@@ -49,4 +51,13 @@ class OrderViewSet(
 ):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+
+
+class AirplaneViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
+    queryset = Airplane.objects.all()
+    serializer_class = AirplaneSerializer
 
