@@ -62,7 +62,7 @@ class Order(models.Model):
     user = get_user_model()
 
     def __str__(self):
-        return self.created_at  # ??
+        return str(self.created_at)
 
 
 class Airport(models.Model):
