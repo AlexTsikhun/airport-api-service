@@ -20,10 +20,8 @@ from airport.serializers import (
     RouteSerializer,
     FlightSerializer,
     TicketSerializer,
-    # AirplaneListSerializer,
     RouteListSerializer,
     RouteDetailSerializer,
-    # AirplaneDetailSerializer
 )
 
 
@@ -72,24 +70,27 @@ class AirplaneViewSet(
     queryset = Airplane.objects.all()
     serializer_class = AirplaneSerializer
 
-
     def get_serializer_class(self):
-        # if self.action == "list":
-        #     return AirplaneListSerializer
-        #
-        # if self.action == "retrieve":
-        #     return AirplaneDetailSerializer
-
         return AirplaneSerializer
 
 
 class RouteViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
     GenericViewSet
 ):
     queryset = Route.objects.all()
     serializer_class = RouteSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return RouteListSerializer
+
+        if self.action == "retrieve":
+            return RouteDetailSerializer
+
+        return RouteSerializer
 
 
 class FlightViewSet(
