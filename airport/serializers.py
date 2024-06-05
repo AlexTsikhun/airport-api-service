@@ -38,21 +38,43 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class AirplaneSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Airplane
-        fields = ("id", "name", "rows", "seats_in_row", "airplane_type",)
-
-
-class AirplaneListSerializer(AirplaneSerializer):
     airplane_type = serializers.SlugRelatedField(
-        many=False, read_only=True, slug_field="name"
-    ) #AirplaneTypeSerializer(many=False, read_only=True)
+            many=False, read_only=True, slug_field="name"
+    )
+
     class Meta:
         model = Airplane
         fields = ("id", "name", "rows", "seats_in_row", "airplane_type",)
 
 
 class RouteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Route
+        fields = ("id", "source", "destination", "distance",)
+
+
+class RouteListSerializer(RouteSerializer):
+    source = serializers.SlugRelatedField(
+        many=False, read_only=True, slug_field="name"
+    )
+    destination = serializers.SlugRelatedField(
+        many=False, read_only=True, slug_field="name"
+    )
+
+    class Meta:
+        model = Route
+        fields = ("id", "source", "destination", "distance",)
+
+
+class RouteDetailSerializer(RouteSerializer):
+    source = AirportSerializer(
+        many=False, read_only=True,  # 'Airport' object is not iterable if many=True
+
+    )
+    destination = AirportSerializer(
+        many=False, read_only=True,
+    )
+
     class Meta:
         model = Route
         fields = ("id", "source", "destination", "distance",)
