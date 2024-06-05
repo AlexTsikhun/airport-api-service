@@ -20,10 +20,8 @@ from airport.serializers import (
     RouteSerializer,
     FlightSerializer,
     TicketSerializer,
-    # AirplaneListSerializer,
     RouteListSerializer,
     RouteDetailSerializer,
-    # AirplaneDetailSerializer
 )
 
 
