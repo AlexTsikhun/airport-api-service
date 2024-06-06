@@ -14,7 +14,7 @@ from airport.models import (
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # don't need detail page, simple model no need
         model = AirplaneType
         fields = ("id", "name",)
 
@@ -45,27 +45,6 @@ class AirplaneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airplane
         fields = ("id", "name", "rows", "seats_in_row", "airplane_type",)
-
-
-# class AirplaneListSerializer(AirplaneSerializer):
-#     airplane_type = serializers.SlugRelatedField(
-#         many=False, read_only=True, slug_field="name"
-#     ) #AirplaneTypeSerializer(many=False, read_only=True)
-#
-#     class Meta:
-#         model = Airplane
-#         fields = ("id", "name", "rows", "seats_in_row", "airplane_type",)
-#
-#
-# class AirplaneDetailSerializer(AirplaneSerializer):
-#     airplane_type = serializers.SlugRelatedField(
-#         many=False, read_only=True, slug_field="name"
-#     )
-#
-#     class Meta:
-#         model = Airplane
-#         fields = ("id", "name", "rows", "seats_in_row", "airplane_type",)
-
 
 
 class RouteSerializer(serializers.ModelSerializer):
@@ -105,6 +84,16 @@ class FlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
         fields = ("id", "route", "airplane", "departure_time", "arrival_time")
+
+
+class FlightListSerializer(FlightSerializer):
+    # source and dest (__str__)
+    route_info = serializers.CharField(source="route", read_only=True)
+    airplane_name = serializers.CharField(source="airplane.name", read_only=True)
+
+    class Meta:
+        model = Flight
+        fields = ("id", "route_info", "airplane_name", "departure_time", "arrival_time")
 
 
 class TicketSerializer(serializers.ModelSerializer):

@@ -22,6 +22,7 @@ from airport.serializers import (
     TicketSerializer,
     RouteListSerializer,
     RouteDetailSerializer,
+    FlightListSerializer,
 )
 
 
@@ -96,10 +97,17 @@ class RouteViewSet(
 class FlightViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
     GenericViewSet
 ):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return FlightListSerializer
+
+        return FlightSerializer
 
 
 class TicketViewSet(
