@@ -34,7 +34,7 @@ class CrewSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = "__all__"
+        fields = ("id", "created_at", "user", "tickets",)
 
 
 class AirplaneSerializer(serializers.ModelSerializer):
