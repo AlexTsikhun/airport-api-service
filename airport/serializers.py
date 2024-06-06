@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import serializers
 
 from airport.models import (
@@ -29,12 +30,6 @@ class CrewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crew
         fields = ("id", "first_name", "last_name",)
-
-
-class OrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ("id", "created_at", "user", "tickets",)
 
 
 class AirplaneSerializer(serializers.ModelSerializer):
@@ -114,7 +109,24 @@ class FlightDetailSerializer(FlightSerializer):
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
-        fields = ("id", "row", "seat", "flight", "order")
+        fields = ("id", "row", "seat", "flight")  # no need order field
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    tickets = TicketSerializer(many=True,
+                               read_only=False)
+
+    class Meta:
+        model = Order
+        fields = ("id", "created_at", "tickets",)
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            tickets_data = validated_data.pop("tickets")
+            order = Order.objects.create(**validated_data)
+            for ticket_data in tickets_data:
+                Ticket.objects.create(order=order, **ticket_data)
+            return order
 
 
 class TicketListSerializer(TicketSerializer):
@@ -133,5 +145,3 @@ class TicketDetailSerializer(TicketSerializer):
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight", "order")
-
-
