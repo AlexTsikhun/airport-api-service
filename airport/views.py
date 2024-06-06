@@ -23,6 +23,7 @@ from airport.serializers import (
     RouteListSerializer,
     RouteDetailSerializer,
     FlightListSerializer,
+    FlightDetailSerializer,
 )
 
 
@@ -106,6 +107,9 @@ class FlightViewSet(
     def get_serializer_class(self):
         if self.action == "list":
             return FlightListSerializer
+
+        if self.action == "retrieve":
+            return FlightDetailSerializer
 
         return FlightSerializer
 
