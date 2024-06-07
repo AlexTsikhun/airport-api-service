@@ -97,14 +97,6 @@ class FlightListSerializer(FlightSerializer):
         fields = ("id", "route_info", "airplane_name", "departure_time", "arrival_time")
 
 
-class FlightDetailSerializer(FlightSerializer):
-    route = RouteListSerializer(many=False, read_only=True)
-    airplane = AirplaneSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Flight
-        fields = ("id", "route", "airplane", "departure_time", "arrival_time")
-
 
 class TicketSerializer(serializers.ModelSerializer):
     def validate(self,
@@ -122,6 +114,24 @@ class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight")  # no need order field
+
+
+class TicketSeatsSerializer(TicketSerializer):
+    class Meta:
+        model = Ticket
+        fields = ("row", "seat")
+
+
+class FlightDetailSerializer(FlightSerializer):
+    route = RouteListSerializer(many=False, read_only=True)
+    airplane = AirplaneSerializer(many=False, read_only=True)
+    taken_places = TicketSeatsSerializer(
+        source="tickets", many=True, read_only=True
+    )
+
+    class Meta:
+        model = Flight
+        fields = ("id", "route", "airplane", "departure_time", "arrival_time", "taken_places")
 
 
 class OrderSerializer(serializers.ModelSerializer):
