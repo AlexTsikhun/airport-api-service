@@ -68,6 +68,9 @@ class OrderViewSet(
     def get_queryset(self):
         return self.queryset.filter(user_id=self.request.user)
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 class AirplaneViewSet(
     mixins.CreateModelMixin,
