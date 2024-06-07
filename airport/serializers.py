@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
+from rest_framework.serializers import ValidationError
 
 from airport.models import (
     AirplaneType,
@@ -107,6 +108,20 @@ class FlightDetailSerializer(FlightSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
+################################## ERROR WITHOUT error_to_raise
+
+    def validate(self,
+                 attrs):
+        data = super(TicketSerializer,
+                     self).validate(attrs=attrs)
+        Ticket.validate_ticket(
+            attrs["row"],
+            attrs["seat"],
+            attrs["flight"].airplane,  # seats_in_row
+            ValidationError
+        )
+        return data
+#################################################
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight")  # no need order field
@@ -133,7 +148,18 @@ class OrderSerializer(serializers.ModelSerializer):
 class TicketListSerializer(TicketSerializer):
     flight_info = serializers.CharField(source="flight", read_only=True)
     order = OrderSerializer(many=False, read_only=True)
-
+################################## NO ERROR WITHOUT error_to_raise
+    def validate(self,
+                 attrs):
+        data = super(TicketSerializer,
+                     self).validate(attrs=attrs)
+        Ticket.validate_ticket(
+            attrs["row"],
+            attrs["seat"],
+            attrs["flight"].airplane,  # seats_in_row
+        )
+        return data
+#########################################
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "flight_info", "order")
