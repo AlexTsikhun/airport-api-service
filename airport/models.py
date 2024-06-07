@@ -59,6 +59,9 @@ class Ticket(models.Model):
     def __str__(self):
         return f"Row:{self.row}, Seat:{self.seat}. {self.flight.route}"
 
+    class Meta:
+        unique_together = ("row", "seat", "flight")
+
 
 class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
