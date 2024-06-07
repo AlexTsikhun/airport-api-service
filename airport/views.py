@@ -10,7 +10,7 @@ from airport.models import (
     Airplane,
     Route,
     Flight,
-    Ticket
+    Ticket,
 )
 from airport.serializers import (
     AirplaneTypeSerializer,
@@ -32,38 +32,25 @@ from airport.serializers import (
 
 from django.db.models import F
 
+
 class AirplaneTypeViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
+    mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet
 ):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
 
 
-class AirportViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
-):
+class AirportViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
 
 
-class CrewViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
-):
+class CrewViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
 
 
-class OrderViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
-):
+class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
@@ -78,7 +65,7 @@ class AirplaneViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    GenericViewSet
+    GenericViewSet,
 ):
     queryset = Airplane.objects.all()
     serializer_class = AirplaneSerializer
@@ -94,7 +81,7 @@ class RouteViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    GenericViewSet
+    GenericViewSet,
 ):
     queryset = Route.objects.all()
     serializer_class = RouteSerializer
@@ -113,7 +100,7 @@ class FlightViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    GenericViewSet
+    GenericViewSet,
 ):
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
@@ -130,14 +117,9 @@ class FlightViewSet(
     def get_queryset(self):
         queryset = self.queryset
         if self.action in "list":
-            queryset = (
-                queryset
-                .select_related("route", "airplane")
-                .annotate(
-                    tickets_available=
-                    F("airplane__rows") * F("airplane__seats_in_row")
-                    - Count("tickets")
-                )
+            queryset = queryset.select_related("route", "airplane").annotate(
+                tickets_available=F("airplane__rows") * F("airplane__seats_in_row")
+                - Count("tickets")
             )
         return queryset.order_by("id")
 
@@ -146,7 +128,7 @@ class TicketViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    GenericViewSet
+    GenericViewSet,
 ):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
@@ -159,5 +141,3 @@ class TicketViewSet(
             return TicketDetailSerializer
 
         return TicketSerializer
-
-

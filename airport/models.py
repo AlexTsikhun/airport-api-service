@@ -1,4 +1,3 @@
-
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
@@ -8,9 +7,7 @@ from airport_api_service import settings
 
 
 class Flight(models.Model):
-    route = models.ForeignKey(
-        "Route", on_delete=models.CASCADE, related_name="flights"
-    )
+    route = models.ForeignKey("Route", on_delete=models.CASCADE, related_name="flights")
     airplane = models.ForeignKey(
         "Airplane", on_delete=models.CASCADE, related_name="flights"
     )
@@ -55,12 +52,8 @@ class Airplane(models.Model):
 class Ticket(models.Model):
     row = models.IntegerField()
     seat = models.IntegerField()
-    flight = models.ForeignKey(
-        Flight, on_delete=models.CASCADE, related_name="tickets"
-    )
-    order = models.ForeignKey(
-        "Order", on_delete=models.CASCADE, related_name="tickets"
-    )
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name="tickets")
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="tickets")
 
     @staticmethod
     def validate_ticket(row, seat, airplane, error_to_raise):
@@ -78,6 +71,7 @@ class Ticket(models.Model):
                         f"(1, {count_attrs})"
                     }
                 )
+
     def clean(self):
         Ticket.validate_ticket(
             self.row,
@@ -85,6 +79,7 @@ class Ticket(models.Model):
             self.flight.airplane,
             ValidationError,
         )
+
     def save(
         self,
         force_insert=False,
@@ -108,9 +103,7 @@ class Ticket(models.Model):
 class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        default=1
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=1
     )
 
     def __str__(self):
