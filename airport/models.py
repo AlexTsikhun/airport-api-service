@@ -47,6 +47,10 @@ class Airplane(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def all_places(self):
+        return self.seats_in_row * self.rows
+
 
 class Ticket(models.Model):
     row = models.IntegerField()
