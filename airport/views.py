@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db.models import Count
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -121,6 +123,22 @@ class FlightViewSet(
                 tickets_available=F("airplane__rows") * F("airplane__seats_in_row")
                 - Count("tickets")
             )
+
+        departure_time = self.request.query_params.get("departure_time")
+        arrival_time = self.request.query_params.get("arrival_time")
+
+        if departure_time:
+            departure_time = datetime.strptime(
+                departure_time, "%Y-%m-%d"
+            ).date()
+            queryset = queryset.filter(departure_time__date=departure_time)
+
+        if arrival_time:
+            arrival_time = datetime.strptime(
+                arrival_time, "%Y-%m-%d"
+            ).date()
+            queryset = queryset.filter(arrival_time__date=arrival_time)
+
         return queryset.order_by("id")
 
 
