@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
@@ -29,6 +30,7 @@ from airport.serializers import (
     AirplaneListSerializer,
 )
 
+from django.db.models import F
 
 class AirplaneTypeViewSet(
     mixins.CreateModelMixin,
@@ -124,6 +126,20 @@ class FlightViewSet(
             return FlightDetailSerializer
 
         return FlightSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.action in "list":
+            queryset = (
+                queryset
+                .select_related("route", "airplane")
+                .annotate(
+                    tickets_available=
+                    F("airplane__rows") * F("airplane__seats_in_row")
+                    - Count("tickets")
+                )
+            )
+        return queryset.order_by("id")
 
 
 class TicketViewSet(

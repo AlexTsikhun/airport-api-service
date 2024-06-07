@@ -1,7 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
+
 from airport.models import (
     AirplaneType,
     Airport,
@@ -90,11 +90,14 @@ class FlightSerializer(serializers.ModelSerializer):
 class FlightListSerializer(FlightSerializer):
     # source and dest (__str__)
     route_info = serializers.CharField(source="route", read_only=True)
-    airplane_name = serializers.CharField(source="airplane.name", read_only=True)
+    airplane_name = serializers.CharField(
+        source="airplane.name", read_only=True
+    )
+    tickets_available = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Flight
-        fields = ("id", "route_info", "airplane_name", "departure_time", "arrival_time")
+        fields = ("id", "route_info", "airplane_name", "departure_time", "arrival_time", "tickets_available")
 
 
 
