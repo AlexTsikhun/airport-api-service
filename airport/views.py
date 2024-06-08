@@ -1,9 +1,13 @@
 from datetime import datetime
 
 from django.db.models import Count
-from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from django.db.models import F
 from rest_framework import mixins
+from rest_framework.permissions import (
+    IsAuthenticated
+)
+from rest_framework.viewsets import GenericViewSet
+
 from airport.models import (
     AirplaneType,
     Airport,
@@ -31,8 +35,6 @@ from airport.serializers import (
     TicketDetailSerializer,
     AirplaneListSerializer,
 )
-
-from django.db.models import F
 
 
 class AirplaneTypeViewSet(
@@ -69,6 +71,7 @@ class OrderViewSet(
 ):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return self.queryset.filter(user_id=self.request.user)
