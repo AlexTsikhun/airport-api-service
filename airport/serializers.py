@@ -83,7 +83,9 @@ class RouteSerializer(serializers.ModelSerializer):
 
 
 class RouteListSerializer(RouteSerializer):
-    source = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
+    source = serializers.SlugRelatedField(
+        many=False, read_only=True, slug_field="name"
+    )
     destination = serializers.SlugRelatedField(
         many=False, read_only=True, slug_field="name"
     )
@@ -127,8 +129,12 @@ class FlightSerializer(serializers.ModelSerializer):
 class FlightListSerializer(FlightSerializer):
     # source and dest (__str__)
     route_info = serializers.CharField(source="route", read_only=True)
-    airplane_name = serializers.CharField(source="airplane.name", read_only=True)
-    all_tickets = serializers.IntegerField(source="airplane.all_places", read_only=True)
+    airplane_name = serializers.CharField(
+        source="airplane.name", read_only=True
+    )
+    all_tickets = serializers.IntegerField(
+        source="airplane.all_places", read_only=True
+    )
     tickets_available = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -169,7 +175,9 @@ class TicketSeatsSerializer(TicketSerializer):
 class FlightDetailSerializer(FlightSerializer):
     route = RouteListSerializer(many=False, read_only=True)
     airplane = AirplaneSerializer(many=False, read_only=True)
-    taken_places = TicketSeatsSerializer(source="tickets", many=True, read_only=True)
+    taken_places = TicketSeatsSerializer(
+        source="tickets", many=True, read_only=True
+    )
 
     class Meta:
         model = Flight

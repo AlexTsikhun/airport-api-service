@@ -36,23 +36,37 @@ from django.db.models import F
 
 
 class AirplaneTypeViewSet(
-    mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
 ):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
 
 
-class AirportViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
+class AirportViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
 
 
-class CrewViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
+class CrewViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
 
 
-class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
+class OrderViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
@@ -119,9 +133,15 @@ class FlightViewSet(
     def get_queryset(self):
         queryset = self.queryset
         if self.action in "list":
-            queryset = queryset.select_related("route", "airplane").annotate(
-                tickets_available=F("airplane__rows") * F("airplane__seats_in_row")
-                - Count("tickets")
+            queryset = (
+                queryset
+                .select_related()
+                .annotate(
+                    tickets_available=(
+                        F("airplane__rows") * F("airplane__seats_in_row")
+                        - Count("tickets")
+                    )
+                )
             )
 
         departure_time = self.request.query_params.get("departure_time")
@@ -129,15 +149,12 @@ class FlightViewSet(
         airplane_name = self.request.query_params.get("airplane")
 
         if departure_time:
-            departure_time = datetime.strptime(
-                departure_time, "%Y-%m-%d"
-            ).date()
+            departure_time = datetime.strptime(departure_time,
+                                               "%Y-%m-%d").date()
             queryset = queryset.filter(departure_time__date=departure_time)
 
         if arrival_time:
-            arrival_time = datetime.strptime(
-                arrival_time, "%Y-%m-%d"
-            ).date()
+            arrival_time = datetime.strptime(arrival_time, "%Y-%m-%d").date()
             queryset = queryset.filter(arrival_time__date=arrival_time)
 
         if airplane_name:
