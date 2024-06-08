@@ -1,4 +1,3 @@
-
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
@@ -47,6 +46,10 @@ class Airplane(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def all_places(self):
+        return self.seats_in_row * self.rows
+
 
 class Ticket(models.Model):
     row = models.IntegerField()
@@ -74,6 +77,7 @@ class Ticket(models.Model):
                         f"(1, {count_attrs})"
                     }
                 )
+
     def clean(self):
         Ticket.validate_ticket(
             self.row,
@@ -81,6 +85,7 @@ class Ticket(models.Model):
             self.flight.airplane,
             ValidationError,
         )
+
     def save(
         self,
         force_insert=False,
@@ -104,9 +109,7 @@ class Ticket(models.Model):
 class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        default=1
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=1
     )
 
     def __str__(self):
