@@ -126,6 +126,7 @@ class FlightViewSet(
 
         departure_time = self.request.query_params.get("departure_time")
         arrival_time = self.request.query_params.get("arrival_time")
+        airplane_name = self.request.query_params.get("airplane")
 
         if departure_time:
             departure_time = datetime.strptime(
@@ -138,6 +139,9 @@ class FlightViewSet(
                 arrival_time, "%Y-%m-%d"
             ).date()
             queryset = queryset.filter(arrival_time__date=arrival_time)
+
+        if airplane_name:
+            queryset = queryset.filter(airplane__name__icontains=airplane_name)
 
         return queryset.order_by("id")
 
