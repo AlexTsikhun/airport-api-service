@@ -68,7 +68,29 @@ class AirplaneListSerializer(serializers.ModelSerializer):
             "rows",
             "seats_in_row",
             "airplane_type",
+            "image"
         )
+
+
+class AirplaneDetailSerializer(serializers.ModelSerializer):
+    airplane_type = AirplaneTypeSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Airplane
+        fields = (
+            "id",
+            "name",
+            "rows",
+            "seats_in_row",
+            "airplane_type",
+            "image"
+        )
+
+
+class AirplaneImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airplane
+        fields = ("id", "image",)
 
 
 class RouteSerializer(serializers.ModelSerializer):

@@ -2,11 +2,17 @@ from datetime import datetime
 
 from django.db.models import Count
 from django.db.models import F
-from rest_framework import mixins
+from rest_framework import (
+    mixins,
+    status
+)
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
-    IsAuthenticated
+    IsAuthenticated,
+    IsAdminUser
 )
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from airport.models import (
@@ -36,6 +42,8 @@ from airport.serializers import (
     TicketDetailSerializer,
     AirplaneListSerializer,
     OrderListSerializer,
+    AirplaneImageSerializer,
+    AirplaneDetailSerializer,
 )
 
 
@@ -83,14 +91,7 @@ class OrderViewSet(
     pagination_class = OrderPagination
 
     def get_queryset(self):
-        queryset = self.queryset.filter(user_id=self.request.user)
-        if self.action == "list":
-            queryset = queryset.prefetch_related(
-                "tickets__flight__route",
-                "tickets__flight__airplane",
-            )
-
-        return queryset
+        return self.queryset.filter(user_id=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -115,13 +116,30 @@ class AirplaneViewSet(
         if self.action == "list":
             return AirplaneListSerializer
 
+        if self.action == "retrieve":
+            return AirplaneDetailSerializer
+
+        if self.action == "upload_image":
+            return AirplaneImageSerializer
+
         return AirplaneSerializer
 
-    def get_queryset(self):
-        queryset = self.queryset
-        if self.action == "list":
-            queryset = queryset.select_related()
-        return queryset
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+        permission_classes=[IsAdminUser],
+    )
+    def upload_image(self, request, pk=None):
+        """Endpoint for uploading image to specific movie"""
+        airplane = self.get_object()
+        serializer = self.get_serializer(airplane, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RouteViewSet(
@@ -129,8 +147,8 @@ class RouteViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet,
-):# !!!
-    queryset = Route.objects.select_related("source", "destination").distinct()
+):
+    queryset = Route.objects.all()
     serializer_class = RouteSerializer
 
     def get_serializer_class(self):
@@ -149,10 +167,7 @@ class FlightViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
-    queryset = Flight.objects.select_related(
-        "route__source",
-        "airplane__airplane_type"
-    )
+    queryset = Flight.objects.all()
     serializer_class = FlightSerializer
 
     def get_serializer_class(self):
