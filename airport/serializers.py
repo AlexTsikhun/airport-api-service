@@ -191,6 +191,22 @@ class FlightDetailSerializer(FlightSerializer):
         )
 
 
+class TicketListSerializer(TicketSerializer):
+    flight = FlightListSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = ("id", "row", "seat", "flight")
+
+
+class TicketDetailSerializer(TicketSerializer):
+    flight = FlightListSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = ("id", "row", "seat", "flight", "order")
+
+
 class OrderSerializer(serializers.ModelSerializer):
     tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
 
@@ -211,19 +227,13 @@ class OrderSerializer(serializers.ModelSerializer):
             return order
 
 
-class TicketListSerializer(TicketSerializer):
-    flight_info = serializers.CharField(source="flight", read_only=True)
-    order = OrderSerializer(many=False, read_only=True)
+class OrderListSerializer(OrderSerializer):
+    tickets = TicketListSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Ticket
-        fields = ("id", "row", "seat", "flight_info", "order")
-
-
-class TicketDetailSerializer(TicketSerializer):
-    flight = FlightListSerializer(many=False, read_only=True)
-    order = OrderSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Ticket
-        fields = ("id", "row", "seat", "flight", "order")
+        model = Order
+        fields = (
+            "id",
+            "created_at",
+            "tickets",
+        )
