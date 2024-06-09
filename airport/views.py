@@ -96,7 +96,14 @@ class OrderViewSet(
     pagination_class = OrderPagination
 
     def get_queryset(self):
-        return self.queryset.filter(user_id=self.request.user)
+        queryset = self.queryset.filter(user_id=self.request.user)
+        if self.action == "list":
+            queryset = queryset.prefetch_related(
+                "tickets__flight__route",
+                "tickets__flight__airplane",
+            )
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -152,8 +159,8 @@ class RouteViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet,
-):
-    queryset = Route.objects.all()
+):# !!!
+    queryset = Route.objects.select_related("source", "destination").distinct()
     serializer_class = RouteSerializer
 
     def get_serializer_class(self):
@@ -172,7 +179,10 @@ class FlightViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
-    queryset = Flight.objects.all()
+    queryset = Flight.objects.select_related(
+        "route__source",
+        "airplane__airplane_type"
+    )
     serializer_class = FlightSerializer
 
     def get_serializer_class(self):
