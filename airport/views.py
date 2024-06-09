@@ -110,6 +110,12 @@ class AirplaneViewSet(
 
         return AirplaneSerializer
 
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.action == "list":
+            queryset = queryset.select_related()
+        return queryset
+
 
 class RouteViewSet(
     mixins.CreateModelMixin,
