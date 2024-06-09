@@ -90,15 +90,6 @@ class RouteListSerializer(RouteSerializer):
         many=False, read_only=True, slug_field="name"
     )
 
-    class Meta:
-        model = Route
-        fields = (
-            "id",
-            "source",
-            "destination",
-            "distance",
-        )
-
 
 class RouteDetailSerializer(RouteSerializer):
     source = AirportSerializer(
