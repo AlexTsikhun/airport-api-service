@@ -2,6 +2,11 @@ from datetime import datetime
 
 from django.db.models import Count
 from django.db.models import F
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter
+)
 from rest_framework import (
     mixins,
     status
@@ -210,6 +215,31 @@ class FlightViewSet(
             queryset = queryset.filter(airplane__name__icontains=airplane_name)
 
         return queryset.order_by("id")
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "departure_time",
+                type={"type": "date"},
+                description="Filter by departure time "
+                            "(ex. ?departure_time=2024-06-09)",
+            ),
+            OpenApiParameter(
+                "arrival_time",
+                type={"type": "date"},
+                description="Filter by arrival time "
+                            "(ex. ?arrival_time=2024-06-25)",
+            ),
+            OpenApiParameter(
+                "airplane",
+                type=OpenApiTypes.STR,
+                description="Filter by airplane name (ex. ?airplane=Boeing 737)",
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of all flights"""
+        return super().list(request, *args, **kwargs)
 
 
 class TicketViewSet(
