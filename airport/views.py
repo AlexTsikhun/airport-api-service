@@ -3,6 +3,7 @@ from datetime import datetime
 from django.db.models import Count
 from django.db.models import F
 from rest_framework import mixins
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
     IsAuthenticated
 )
@@ -65,6 +66,12 @@ class CrewViewSet(
     serializer_class = CrewSerializer
 
 
+class OrderPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 class OrderViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -73,6 +80,7 @@ class OrderViewSet(
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = (IsAuthenticated,)
+    pagination_class = OrderPagination
 
     def get_queryset(self):
         return self.queryset.filter(user_id=self.request.user)
