@@ -153,7 +153,7 @@ class RouteViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
-    queryset = Route.objects.all()
+    queryset = Route.objects.select_related()
     serializer_class = RouteSerializer
 
     def get_serializer_class(self):
