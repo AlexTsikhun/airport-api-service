@@ -172,7 +172,7 @@ class FlightViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
-    queryset = Flight.objects.all()
+    queryset = Flight.objects.select_related()
     serializer_class = FlightSerializer
 
     def get_serializer_class(self):
@@ -189,7 +189,6 @@ class FlightViewSet(
         if self.action in "list":
             queryset = (
                 queryset
-                .select_related()
                 .annotate(
                     tickets_available=(
                         F("airplane__rows") * F("airplane__seats_in_row")
