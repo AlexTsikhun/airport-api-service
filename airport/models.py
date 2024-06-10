@@ -18,8 +18,8 @@ class Flight(models.Model):
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
 
-    # def __str__(self):
-    #     return f"{self.route} arrived at {self.departure_time}"
+    def __str__(self):
+        return f"{self.route} arrived at {self.departure_time}"
 
 
 class Route(models.Model):
@@ -32,9 +32,9 @@ class Route(models.Model):
     )
     distance = models.IntegerField()
 
-    # def __str__(self):
-    #     # here I don't need source.name, just source
-    #     return f"{self.source.name}-{self.destination}"
+    def __str__(self):
+        # here I don't need source.name, just source
+        return f"{self.source.name}-{self.destination}"
 
 
 def airplane_image_file_path(instance, filename):
@@ -53,13 +53,13 @@ class Airplane(models.Model):
     )
     image = models.ImageField(null=True, upload_to=airplane_image_file_path)
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return self.name
 
-    # @property
-    # def all_places(self):
-    #     return self.seats_in_row * self.rows
-    #
+    @property
+    def all_places(self):
+        return self.seats_in_row * self.rows
+
 
 class Ticket(models.Model):
     row = models.IntegerField()
@@ -108,8 +108,8 @@ class Ticket(models.Model):
             force_insert, force_update, using, update_fields
         )
 
-    # def __str__(self):
-    #     return f"Row:{self.row}, Seat:{self.seat}. {self.flight.route}"
+    def __str__(self):
+        return f"Row:{self.row}, Seat:{self.seat}. {self.flight.route}"
 
     class Meta:
         unique_together = ("row", "seat", "flight")
@@ -122,23 +122,23 @@ class Order(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
     )
 
-    # def __str__(self):
-    #     return str(self.created_at)
+    def __str__(self):
+        return str(self.created_at)
 
 
 class Airport(models.Model):
     name = models.CharField(max_length=255)
     closest_big_city = models.CharField(max_length=255)
 
-    # def __str__(self):
-    #     return self.name
-    #
+    def __str__(self):
+        return self.name
+
 
 class AirplaneType(models.Model):
     name = models.CharField(max_length=255)
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return self.name
 
 
 class Crew(models.Model):
