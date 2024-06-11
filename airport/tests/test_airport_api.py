@@ -26,6 +26,7 @@ from airport.serializers import (
 )
 
 FLIGHT_URL = reverse("airport:flight-list")
+AIRPLANE_URL = reverse("airport:airplane-list")
 
 
 def sample_flight(**params):
@@ -301,3 +302,89 @@ class AirplaneImageUploadTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn("image", res.data)
         self.assertTrue(os.path.exists(self.airplane.image.path))
+
+    def test_upload_image_bad_request(self):
+        """Test uploading an invalid image"""
+        url = image_upload_url(self.airplane.id)
+        res = self.client.post(url, {"image": "not image"}, format="multipart")
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_post_image_to_movie_list_should_not_work(self):
+        url = AIRPLANE_URL
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            airplane_type = AirplaneType.objects.create(name="Big")
+
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+            res = self.client.post(
+                url,
+                {
+                    "name": "ANN",
+                    "rows": 10,
+                    "seats_in_row": 10,
+                    "airplane_type": 1,
+                    "image": ntf,
+                },
+                format="multipart",
+            )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        airplane = Airplane.objects.filter(name="ANN")[0]  # or first()
+        self.assertFalse(airplane.image)
+    #
+    # def test_image_url_is_shown_on_movie_detail(self):
+    #     url = image_upload_url(self.movie.id)
+    #     with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+    #         img = Image.new("RGB", (10, 10))
+    #         img.save(ntf, format="JPEG")
+    #         ntf.seek(0)
+    #         self.client.post(url, {"image": ntf}, format="multipart")
+    #     res = self.client.get(detail_url(self.movie.id))
+    #
+    #     self.assertIn("image", res.data)
+    #
+    # def test_image_url_is_shown_on_movie_list(self):
+    #     url = image_upload_url(self.movie.id)
+    #     with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+    #         img = Image.new("RGB", (10, 10))
+    #         img.save(ntf, format="JPEG")
+    #         ntf.seek(0)
+    #         self.client.post(url, {"image": ntf}, format="multipart")
+    #     res = self.client.get(MOVIE_URL)
+    #
+    #     self.assertIn("image", res.data[0].keys())
+    #
+    # def test_image_url_is_shown_on_movie_session_detail(self):
+    #     url = image_upload_url(self.movie.id)
+    #     with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+    #         img = Image.new("RGB", (10, 10))
+    #         img.save(ntf, format="JPEG")
+    #         ntf.seek(0)
+    #         self.client.post(url, {"image": ntf}, format="multipart")
+    #     res = self.client.get(MOVIE_SESSION_URL)
+    #
+    #     self.assertIn("movie_image", res.data[0].keys())
+    #
+    # def test_put_movie_not_allowed(self):
+    #     payload = {
+    #         "title": "New movie",
+    #         "description": "New description",
+    #         "duration": 98,
+    #     }
+    #
+    #     movie = sample_movie()
+    #     url = detail_url(movie.id)
+    #
+    #     res = self.client.put(url, payload)
+    #
+    #     self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+    #
+    # def test_delete_movie_not_allowed(self):
+    #     movie = sample_movie()
+    #     url = detail_url(movie.id)
+    #
+    #     res = self.client.delete(url)
+    #
+    #     self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
