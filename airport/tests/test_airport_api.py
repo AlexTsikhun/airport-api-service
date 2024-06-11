@@ -54,3 +54,30 @@ class UnauthenticatedFlightApiTests(TestCase):
         res = self.client.get(FLIGHT_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+
+class AuthenticatedFlightApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            "test@test.com",
+            "testpass",
+        )
+        self.client.force_authenticate(self.user)
+
+    def test_list_flights(self):
+        sample_flight()
+        sample_flight()
+
+        res = self.client.get(FLIGHT_URL)
+
+        # this is my queryset
+        flights = Flight.objects.annotate(
+            tickets_available=(
+                F("airplane__rows") * F("airplane__seats_in_row")
+                - Count("tickets")
+            )
+        ).order_by("id")
+        serializer = FlightListSerializer(flights, many=True)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
