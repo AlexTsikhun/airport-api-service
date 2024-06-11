@@ -112,3 +112,31 @@ class AuthenticatedFlightApiTests(TestCase):
         serializer1 = FlightListSerializer(flights, many=True)
 
         self.assertEqual(serializer1.data, res.data)
+
+    def test_filter_flight_by_arrival_time(self):
+        airplane_type = AirplaneType.objects.create(name="Small")
+        airplane = Airplane.objects.create(
+            name="Boeing",
+            rows=10,
+            seats_in_row=10,
+            airplane_type=airplane_type
+        )
+
+        flight1 = sample_flight(airplane=airplane, arrival_time="2024-06-25")
+        flight2 = sample_flight(airplane=airplane)
+        flight3 = sample_flight()
+
+        flights = Flight.objects.annotate(
+            tickets_available=(
+                F("airplane__rows") * F("airplane__seats_in_row")
+                - Count("tickets")
+            )
+        ).order_by("id").filter(arrival_time="2024-06-25")
+
+        res = self.client.get(
+            FLIGHT_URL, {"arrival_time": "2024-06-25"}
+        )
+
+        serializer1 = FlightListSerializer(flights, many=True)
+
+        self.assertEqual(serializer1.data, res.data)
