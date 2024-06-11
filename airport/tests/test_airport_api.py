@@ -55,6 +55,9 @@ class UnauthenticatedFlightApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+
+
+
 class AuthenticatedFlightApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -81,3 +84,31 @@ class AuthenticatedFlightApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_filter_flight_by_departure_time(self):
+        airplane_type = AirplaneType.objects.create(name="Small")
+        airplane = Airplane.objects.create(
+            name="Boeing",
+            rows=10,
+            seats_in_row=10,
+            airplane_type=airplane_type
+        )
+
+        flight1 = sample_flight(airplane=airplane)
+        flight2 = sample_flight(airplane=airplane, departure_time="2024-06-10")
+        flight3 = sample_flight()
+
+        flights = Flight.objects.annotate(
+            tickets_available=(
+                F("airplane__rows") * F("airplane__seats_in_row")
+                - Count("tickets")
+            )
+        ).order_by("id").filter(departure_time=flight1.departure_time)
+
+        res = self.client.get(
+            FLIGHT_URL, {"departure_time": f"{flight1.departure_time}"}
+        )
+
+        serializer1 = FlightListSerializer(flights, many=True)
+
+        self.assertEqual(serializer1.data, res.data)
