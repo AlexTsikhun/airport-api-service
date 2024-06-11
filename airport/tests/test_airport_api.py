@@ -203,3 +203,49 @@ class AuthenticatedFlightApiTests(TestCase):
         res = self.client.post(FLIGHT_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class AdminMovieApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            "admin@admin.com", "testpass", is_staff=True
+        )
+        self.client.force_authenticate(self.user)
+
+    def test_create_flight(self):
+        airport = Airport.objects.create(
+            name="Freedom",
+            closest_big_city="Lviv"
+        )
+        route = Route.objects.create(
+            source=airport,
+            destination=airport,
+            distance=50
+        )
+
+        airplane_type = AirplaneType.objects.create(name="Big")
+        airplane = Airplane.objects.create(
+            name="ANN",
+            rows=10,
+            seats_in_row=10,
+            airplane_type=airplane_type
+        )
+
+        payload = {
+            "route": 1,
+            "airplane": airplane.id,
+            "departure_time": "2024-06-09",
+            "arrival_time": "2024-06-25",
+        }
+        res = self.client.post(FLIGHT_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        flight = Flight.objects.get(id=res.data["id"])
+
+        self.assertEqual(flight.route, route)
+        self.assertEqual(flight.route, route)
+        self.assertIsInstance(flight.airplane, Airplane)
+        self.assertIsNotNone(flight.route)
+
