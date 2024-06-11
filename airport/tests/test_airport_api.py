@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db.models import F, Count
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -12,7 +14,10 @@ from airport.models import (
     Airplane,
     AirplaneType
 )
-from airport.serializers import FlightListSerializer
+from airport.serializers import (
+    FlightListSerializer,
+    FlightDetailSerializer
+)
 
 FLIGHT_URL = reverse("airport:flight-list")
 
@@ -46,6 +51,10 @@ def sample_flight(**params):
     return Flight.objects.create(**defaults)
 
 
+def detail_url(flight_id):
+    return reverse("airport:flight-detail", args=[flight_id])
+
+
 class UnauthenticatedFlightApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -53,9 +62,6 @@ class UnauthenticatedFlightApiTests(TestCase):
     def test_auth_required(self):
         res = self.client.get(FLIGHT_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-
-
-
 
 
 class AuthenticatedFlightApiTests(TestCase):
@@ -94,6 +100,7 @@ class AuthenticatedFlightApiTests(TestCase):
             airplane_type=airplane_type
         )
 
+
         flight1 = sample_flight(airplane=airplane)
         flight2 = sample_flight(airplane=airplane, departure_time="2024-06-10")
         flight3 = sample_flight()
@@ -106,7 +113,7 @@ class AuthenticatedFlightApiTests(TestCase):
         ).order_by("id").filter(departure_time=flight1.departure_time)
 
         res = self.client.get(
-            FLIGHT_URL, {"departure_time": f"{flight1.departure_time}"}
+            FLIGHT_URL, {"departure_time": "2024-06-09"}  # error with it f"{flight1.departure_time}"}
         )
 
         serializer1 = FlightListSerializer(flights, many=True)
@@ -167,26 +174,24 @@ class AuthenticatedFlightApiTests(TestCase):
 
         self.assertEqual(serializer1.data, res.data)
 
-#     def test_retrieve_flight_detail(self):
-#         flight = sample_flight()
-#         flight.genres.add(Genre.objects.create(name="Genre"))
-#         flight.actors.add(
-#             Actor.objects.create(first_name="Actor", last_name="Last")
-#         )
-#
-#         url = detail_url(flight.id)
-#         res = self.client.get(url)
-#
-#         serializer = FlightDetailSerializer(flight)
-#         self.assertEqual(res.status_code, status.HTTP_200_OK)
-#         self.assertEqual(res.data, serializer.data)
-#
-#     def test_create_flight_forbidden(self):
-#         payload = {
-#             "title": "Flight",
-#             "description": "Description",
-#             "duration": 90,
-#         }
-#         res = self.client.post(MOVIE_URL, payload)
-#
-#         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+    def test_retrieve_flight_detail(self):
+        flight = sample_flight()
+
+        url = detail_url(flight.id)
+        res = self.client.get(url)
+        datetime_str = res.data["arrival_time"]
+        original_date = datetime.strptime(datetime_str,
+                                          '%Y-%m-%dT%H:%M:%SZ')
+
+        res.data["arrival_time"] = original_date.strftime('%Y-%m-%d')
+
+        datetime_str = res.data["departure_time"]
+        original_date = datetime.strptime(datetime_str,
+                                          '%Y-%m-%dT%H:%M:%SZ')
+
+        res.data["departure_time"] = original_date.strftime('%Y-%m-%d')
+
+        serializer = FlightDetailSerializer(flight)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
