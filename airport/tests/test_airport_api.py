@@ -140,3 +140,53 @@ class AuthenticatedFlightApiTests(TestCase):
         serializer1 = FlightListSerializer(flights, many=True)
 
         self.assertEqual(serializer1.data, res.data)
+
+    def test_filter_flights_by_airplane_name(self):
+        airplane_type = AirplaneType.objects.create(name="Small")
+        airplane = Airplane.objects.create(
+            name="Boeing 737",
+            rows=10,
+            seats_in_row=10,
+            airplane_type=airplane_type
+        )
+
+        flight1 = sample_flight(airplane=airplane, arrival_time="2024-06-25")
+        flight2 = sample_flight(airplane=airplane)
+        flight3 = sample_flight()
+
+        flights = Flight.objects.annotate(
+            tickets_available=(
+                F("airplane__rows") * F("airplane__seats_in_row")
+                - Count("tickets")
+            )
+        ).order_by("id").filter(airplane__name__icontains="Boeing")
+
+        res = self.client.get(FLIGHT_URL, {"airplane": "Boeing"})
+
+        serializer1 = FlightListSerializer(flights, many=True)
+
+        self.assertEqual(serializer1.data, res.data)
+
+#     def test_retrieve_flight_detail(self):
+#         flight = sample_flight()
+#         flight.genres.add(Genre.objects.create(name="Genre"))
+#         flight.actors.add(
+#             Actor.objects.create(first_name="Actor", last_name="Last")
+#         )
+#
+#         url = detail_url(flight.id)
+#         res = self.client.get(url)
+#
+#         serializer = FlightDetailSerializer(flight)
+#         self.assertEqual(res.status_code, status.HTTP_200_OK)
+#         self.assertEqual(res.data, serializer.data)
+#
+#     def test_create_flight_forbidden(self):
+#         payload = {
+#             "title": "Flight",
+#             "description": "Description",
+#             "duration": 90,
+#         }
+#         res = self.client.post(MOVIE_URL, payload)
+#
+#         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
