@@ -1,7 +1,13 @@
+import os
+import tempfile
 from datetime import datetime
 
-from django.db.models import F, Count
+from PIL import Image
 from django.contrib.auth import get_user_model
+from django.db.models import (
+    F,
+    Count
+)
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -51,8 +57,27 @@ def sample_flight(**params):
     return Flight.objects.create(**defaults)
 
 
+def sample_airplane(**params):
+    airplane_type = AirplaneType.objects.create(name="Big")
+
+    defaults = {
+        "name": "ANN",
+        "rows": 10,
+        "seats_in_row": 10,
+        "airplane_type": airplane_type
+    }
+    defaults.update(params)
+
+    return Airplane.objects.create(**defaults)
+
+
 def detail_url(flight_id):
     return reverse("airport:flight-detail", args=[flight_id])
+
+
+def image_upload_url(flight_id):
+    """Return URL for recipe image upload"""
+    return reverse("airport:airplane-upload-image", args=[flight_id])
 
 
 class UnauthenticatedFlightApiTests(TestCase):
@@ -249,3 +274,30 @@ class AdminMovieApiTests(TestCase):
         self.assertIsInstance(flight.airplane, Airplane)
         self.assertIsNotNone(flight.route)
 
+
+class AirplaneImageUploadTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_superuser(
+            "adminn@myproject.com", "password"
+        )
+        self.client.force_authenticate(self.user)
+        self.airplane = sample_airplane()
+        # self.movie_session = sample_movie_session(movie=self.movie)
+
+    def tearDown(self):
+        self.airplane.image.delete()
+
+    def test_upload_image_to_airplane(self):
+        """Test uploading an image to movie"""
+        url = image_upload_url(self.airplane.id)
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+            res = self.client.post(url, {"image": ntf}, format="multipart")
+        self.airplane.refresh_from_db()
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("image", res.data)
+        self.assertTrue(os.path.exists(self.airplane.image.path))
