@@ -90,7 +90,10 @@ class OrderViewSet(
     mixins.ListModelMixin,
     GenericViewSet
 ):
-    queryset = Order.objects.all()
+    queryset = Order.objects.prefetch_related(
+        "tickets__flight__route",
+        "tickets__flight__airplane"
+    )
     serializer_class = OrderSerializer
     permission_classes = (IsAuthenticated,)
     pagination_class = OrderPagination

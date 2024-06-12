@@ -204,8 +204,22 @@ class FlightDetailSerializer(FlightSerializer):
         )
 
 
+class OrderFlightSerializer(FlightSerializer):
+    """
+    This ser. like FlightListSerializer, without `route_info` field.
+    That field was caused N+1 problem.
+     """
+    airplane_name = serializers.CharField(
+        source="airplane.name", read_only=True
+    )
+
+    class Meta:
+        model = Flight
+        fields = ("id", "airplane_name", "departure_time", "arrival_time")
+
+
 class TicketListSerializer(TicketSerializer):
-    flight = FlightListSerializer(many=False, read_only=True)
+    flight = OrderFlightSerializer(many=False, read_only=True)
 
     class Meta:
         model = Ticket
