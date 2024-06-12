@@ -48,24 +48,28 @@ def sample_route(**params):
     return Route.objects.create(**defaults)
 
 
-def sample_flight(**params):
-    # airport = Airport.objects.create(
-    #     name="Freedom", closest_big_city="Lviv"
-    # )
-    # route = Route.objects.create(
-    #     source=airport,
-    #     destination=airport,
-    #     distance=50
-    # )
-    route = sample_route()
+def sample_airplane_type(**params):
+    defaults = {
+        "name": "Big"
+    }
+    defaults.update(params)
+    return AirplaneType.objects.create(**defaults)
 
-    airplane_type = AirplaneType.objects.create(name="Big")
-    airplane = Airplane.objects.create(
-        name="ANN",
-        rows=10,
-        seats_in_row=10,
-        airplane_type=airplane_type
-    )
+
+def sample_airplane():
+    airplane_type = sample_airplane_type()
+    defaults = {
+        "name": "ANN",
+        "rows": 10,
+        "seats_in_row": 10,
+        "airplane_type": airplane_type
+    }
+    return Airplane.objects.create(**defaults)
+
+
+def sample_flight(**params):
+    route = sample_route()
+    airplane = sample_airplane()
 
     defaults = {
         "route": route,
@@ -76,20 +80,6 @@ def sample_flight(**params):
     defaults.update(params)
 
     return Flight.objects.create(**defaults)
-
-
-def sample_airplane(**params):
-    airplane_type = AirplaneType.objects.create(name="Big")
-
-    defaults = {
-        "name": "ANN",
-        "rows": 10,
-        "seats_in_row": 10,
-        "airplane_type": airplane_type
-    }
-    defaults.update(params)
-
-    return Airplane.objects.create(**defaults)
 
 
 def detail_url(flight_id):
