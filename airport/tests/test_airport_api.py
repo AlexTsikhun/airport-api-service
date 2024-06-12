@@ -95,6 +95,14 @@ def airplane_detail_url(flight_id):
     return reverse("airport:airplane-detail", args=[flight_id])
 
 
+def convert_full_to_readable_date(datetime_str: str) -> str:
+    # convert str to date
+    original_date = datetime.strptime(datetime_str,
+                                      "%Y-%m-%dT%H:%M:%SZ")
+
+    return original_date.strftime("%Y-%m-%d")
+
+
 class UnauthenticatedFlightApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -132,18 +140,11 @@ class AuthenticatedFlightApiTests(TestCase):
         self.assertEqual(res.data, serializer.data)
 
     def test_filter_flight_by_departure_time(self):
-        airplane_type = AirplaneType.objects.create(name="Small")
-        airplane = Airplane.objects.create(
-            name="Boeing",
-            rows=10,
-            seats_in_row=10,
-            airplane_type=airplane_type
-        )
-
+        airplane = sample_airplane()
 
         flight1 = sample_flight(airplane=airplane)
-        flight2 = sample_flight(airplane=airplane, departure_time="2024-06-10")
-        flight3 = sample_flight()
+        sample_flight(airplane=airplane, departure_time="2024-06-10")
+        sample_flight()
 
         flights = Flight.objects.annotate(
             tickets_available=(
@@ -161,17 +162,11 @@ class AuthenticatedFlightApiTests(TestCase):
         self.assertEqual(serializer1.data, res.data)
 
     def test_filter_flight_by_arrival_time(self):
-        airplane_type = AirplaneType.objects.create(name="Small")
-        airplane = Airplane.objects.create(
-            name="Boeing",
-            rows=10,
-            seats_in_row=10,
-            airplane_type=airplane_type
-        )
+        airplane = sample_airplane()
 
-        flight1 = sample_flight(airplane=airplane, arrival_time="2024-06-25")
-        flight2 = sample_flight(airplane=airplane)
-        flight3 = sample_flight()
+        sample_flight(airplane=airplane, arrival_time="2024-06-25")
+        sample_flight(airplane=airplane)
+        sample_flight()
 
         flights = Flight.objects.annotate(
             tickets_available=(
@@ -189,17 +184,11 @@ class AuthenticatedFlightApiTests(TestCase):
         self.assertEqual(serializer1.data, res.data)
 
     def test_filter_flights_by_airplane_name(self):
-        airplane_type = AirplaneType.objects.create(name="Small")
-        airplane = Airplane.objects.create(
-            name="Boeing 737",
-            rows=10,
-            seats_in_row=10,
-            airplane_type=airplane_type
-        )
+        airplane = sample_airplane()
 
-        flight1 = sample_flight(airplane=airplane, arrival_time="2024-06-25")
-        flight2 = sample_flight(airplane=airplane)
-        flight3 = sample_flight()
+        sample_flight(airplane=airplane, arrival_time="2024-06-25")
+        sample_flight(airplane=airplane)
+        sample_flight()
 
         flights = Flight.objects.annotate(
             tickets_available=(
@@ -219,17 +208,8 @@ class AuthenticatedFlightApiTests(TestCase):
 
         url = detail_url(flight.id)
         res = self.client.get(url)
-        datetime_str = res.data["arrival_time"]
-        original_date = datetime.strptime(datetime_str,
-                                          '%Y-%m-%dT%H:%M:%SZ')
-
-        res.data["arrival_time"] = original_date.strftime('%Y-%m-%d')
-
-        datetime_str = res.data["departure_time"]
-        original_date = datetime.strptime(datetime_str,
-                                          '%Y-%m-%dT%H:%M:%SZ')
-
-        res.data["departure_time"] = original_date.strftime('%Y-%m-%d')
+        res.data["arrival_time"] = convert_full_to_readable_date(res.data["arrival_time"])
+        res.data["departure_time"] = convert_full_to_readable_date(res.data["departure_time"])
 
         serializer = FlightDetailSerializer(flight)
 
