@@ -81,6 +81,10 @@ def image_upload_url(flight_id):
     return reverse("airport:airplane-upload-image", args=[flight_id])
 
 
+def airplane_detail_url(flight_id):
+    return reverse("airport:airplane-detail", args=[flight_id])
+
+
 class UnauthenticatedFlightApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -231,7 +235,7 @@ class AuthenticatedFlightApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class AdminMovieApiTests(TestCase):
+class AdminAirplaneApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
@@ -284,13 +288,12 @@ class AirplaneImageUploadTests(TestCase):
         )
         self.client.force_authenticate(self.user)
         self.airplane = sample_airplane()
-        # self.movie_session = sample_movie_session(movie=self.movie)
 
     def tearDown(self):
         self.airplane.image.delete()
 
     def test_upload_image_to_airplane(self):
-        """Test uploading an image to movie"""
+        """Test uploading an image to airplane"""
         url = image_upload_url(self.airplane.id)
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
             img = Image.new("RGB", (10, 10))
@@ -310,7 +313,7 @@ class AirplaneImageUploadTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_post_image_to_movie_list_should_not_work(self):
+    def test_post_image_to_airplane_list_should_not_work(self):
         url = AIRPLANE_URL
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
             airplane_type = AirplaneType.objects.create(name="Big")
@@ -333,58 +336,45 @@ class AirplaneImageUploadTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         airplane = Airplane.objects.filter(name="ANN")[0]  # or first()
         self.assertFalse(airplane.image)
-    #
-    # def test_image_url_is_shown_on_movie_detail(self):
-    #     url = image_upload_url(self.movie.id)
-    #     with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
-    #         img = Image.new("RGB", (10, 10))
-    #         img.save(ntf, format="JPEG")
-    #         ntf.seek(0)
-    #         self.client.post(url, {"image": ntf}, format="multipart")
-    #     res = self.client.get(detail_url(self.movie.id))
-    #
-    #     self.assertIn("image", res.data)
-    #
-    # def test_image_url_is_shown_on_movie_list(self):
-    #     url = image_upload_url(self.movie.id)
-    #     with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
-    #         img = Image.new("RGB", (10, 10))
-    #         img.save(ntf, format="JPEG")
-    #         ntf.seek(0)
-    #         self.client.post(url, {"image": ntf}, format="multipart")
-    #     res = self.client.get(MOVIE_URL)
-    #
-    #     self.assertIn("image", res.data[0].keys())
-    #
-    # def test_image_url_is_shown_on_movie_session_detail(self):
-    #     url = image_upload_url(self.movie.id)
-    #     with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
-    #         img = Image.new("RGB", (10, 10))
-    #         img.save(ntf, format="JPEG")
-    #         ntf.seek(0)
-    #         self.client.post(url, {"image": ntf}, format="multipart")
-    #     res = self.client.get(MOVIE_SESSION_URL)
-    #
-    #     self.assertIn("movie_image", res.data[0].keys())
-    #
-    # def test_put_movie_not_allowed(self):
-    #     payload = {
-    #         "title": "New movie",
-    #         "description": "New description",
-    #         "duration": 98,
-    #     }
-    #
-    #     movie = sample_movie()
-    #     url = detail_url(movie.id)
-    #
-    #     res = self.client.put(url, payload)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-    #
-    # def test_delete_movie_not_allowed(self):
-    #     movie = sample_movie()
-    #     url = detail_url(movie.id)
-    #
-    #     res = self.client.delete(url)
-    #
-    #     self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_image_url_is_shown_on_airplane_detail(self):
+        url = image_upload_url(self.airplane.id)
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+            self.client.post(url, {"image": ntf}, format="multipart")
+        res = self.client.get(airplane_detail_url(self.airplane.id))
+
+        self.assertIn("image", res.data)
+
+    def test_image_url_is_shown_on_airplane_list(self):
+        url = image_upload_url(self.airplane.id)
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+            self.client.post(url, {"image": ntf}, format="multipart")
+        res = self.client.get(AIRPLANE_URL)
+
+        self.assertIn("image", res.data[0].keys())
+
+    def test_put_airplane_not_allowed(self):
+        payload = {
+            "route": "Some fictitious data for test"
+        }
+
+        airplane = sample_airplane()
+        url = detail_url(airplane.id)
+
+        res = self.client.put(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete_airplane_not_allowed(self):
+        airplane = sample_airplane()
+        url = detail_url(airplane.id)
+
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
