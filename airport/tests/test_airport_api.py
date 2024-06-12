@@ -234,23 +234,8 @@ class AdminAirplaneApiTests(TestCase):
         self.client.force_authenticate(self.user)
 
     def test_create_flight(self):
-        airport = Airport.objects.create(
-            name="Freedom",
-            closest_big_city="Lviv"
-        )
-        route = Route.objects.create(
-            source=airport,
-            destination=airport,
-            distance=50
-        )
-
-        airplane_type = AirplaneType.objects.create(name="Big")
-        airplane = Airplane.objects.create(
-            name="ANN",
-            rows=10,
-            seats_in_row=10,
-            airplane_type=airplane_type
-        )
+        route = sample_route()
+        airplane = sample_airplane()
 
         payload = {
             "route": 1,
@@ -306,7 +291,8 @@ class AirplaneImageUploadTests(TestCase):
     def test_post_image_to_airplane_list_should_not_work(self):
         url = AIRPLANE_URL
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
-            airplane_type = AirplaneType.objects.create(name="Big")
+            # related for "airplane_type": 1,
+            sample_airplane_type()
 
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
