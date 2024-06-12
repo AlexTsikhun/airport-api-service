@@ -29,15 +29,35 @@ FLIGHT_URL = reverse("airport:flight-list")
 AIRPLANE_URL = reverse("airport:airplane-list")
 
 
+def sample_airport(**params):
+    defaults = {
+        "name": "Freedom",
+        "closest_big_city": "Lviv"
+    }
+    return Airport.objects.create(**defaults)
+
+
+def sample_route(**params):
+    airport = sample_airport()
+    defaults = {
+        "source": airport,
+        "destination": airport,
+        "distance": 50
+    }
+    defaults.update(params)
+    return Route.objects.create(**defaults)
+
+
 def sample_flight(**params):
-    airport = Airport.objects.create(
-        name="Freedom", closest_big_city="Lviv"
-    )
-    route = Route.objects.create(
-        source=airport,
-        destination=airport,
-        distance=50
-    )
+    # airport = Airport.objects.create(
+    #     name="Freedom", closest_big_city="Lviv"
+    # )
+    # route = Route.objects.create(
+    #     source=airport,
+    #     destination=airport,
+    #     distance=50
+    # )
+    route = sample_route()
 
     airplane_type = AirplaneType.objects.create(name="Big")
     airplane = Airplane.objects.create(
