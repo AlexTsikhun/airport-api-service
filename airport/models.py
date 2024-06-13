@@ -1,10 +1,10 @@
 import os
 import uuid
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 from rest_framework.serializers import ValidationError
-from django.core.exceptions import ValidationError
 
 from airport_api_service import settings
 
@@ -27,8 +27,8 @@ class Flight(models.Model):
         flight_time = arrival_time - departure_time
         if (
             flight_time.total_seconds() > 86400  # 1 day = 86400 sec
-            or flight_time.total_seconds() < 900
-        ):  # 15 min = 900 sec
+            or flight_time.total_seconds() < 900  # 15 min = 900 sec
+        ):
             raise error_to_raise("Time is not valid!")
 
     def clean(self):
@@ -57,7 +57,9 @@ class Route(models.Model):
         "Airport",
         on_delete=models.CASCADE,  # or rename rel_name?
     )
-    distance = models.IntegerField()
+    distance = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(17_000), MinValueValidator(19)]
+    )
 
     def __str__(self):
         # here I don't need source.name, just source
