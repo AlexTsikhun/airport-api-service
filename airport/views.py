@@ -3,20 +3,11 @@ from datetime import datetime
 from django.db.models import Count
 from django.db.models import F
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiParameter
-)
-from rest_framework import (
-    mixins,
-    status
-)
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import (
-    IsAuthenticated,
-    IsAdminUser
-)
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -53,27 +44,21 @@ from airport.serializers import (
 
 
 class AirplaneTypeViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
+    mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet
 ):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
 
 
 class AirportViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
+    mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet
 ):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
 
 
 class CrewViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
+    mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet
 ):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
@@ -86,13 +71,10 @@ class OrderPagination(PageNumberPagination):
 
 
 class OrderViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
+    mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet
 ):
     queryset = Order.objects.prefetch_related(
-        "tickets__flight__route",
-        "tickets__flight__airplane"
+        "tickets__flight__route", "tickets__flight__airplane"
     )
     serializer_class = OrderSerializer
     permission_classes = (IsAuthenticated,)
@@ -190,13 +172,10 @@ class FlightViewSet(
     def get_queryset(self):
         queryset = self.queryset
         if self.action in "list":
-            queryset = (
-                queryset
-                .annotate(
-                    tickets_available=(
-                        F("airplane__rows") * F("airplane__seats_in_row")
-                        - Count("tickets")
-                    )
+            queryset = queryset.annotate(
+                tickets_available=(
+                    F("airplane__rows") * F("airplane__seats_in_row")
+                    - Count("tickets")
                 )
             )
 
@@ -205,8 +184,9 @@ class FlightViewSet(
         airplane_name = self.request.query_params.get("airplane")
 
         if departure_time:
-            departure_time = datetime.strptime(departure_time,
-                                               "%Y-%m-%d").date()
+            departure_time = datetime.strptime(
+                departure_time, "%Y-%m-%d"
+            ).date()
             queryset = queryset.filter(departure_time__date=departure_time)
 
         if arrival_time:
@@ -224,18 +204,19 @@ class FlightViewSet(
                 "departure_time",
                 type={"type": "date"},
                 description="Filter by departure time "
-                            "(ex. ?departure_time=2024-06-09)",
+                "(ex. ?departure_time=2024-06-09)",
             ),
             OpenApiParameter(
                 "arrival_time",
                 type={"type": "date"},
                 description="Filter by arrival time "
-                            "(ex. ?arrival_time=2024-06-25)",
+                "(ex. ?arrival_time=2024-06-25)",
             ),
             OpenApiParameter(
                 "airplane",
                 type=OpenApiTypes.STR,
-                description="Filter by airplane name (ex. ?airplane=Boeing 737)",
+                description="Filter by airplane name "
+                "(ex. ?airplane=Boeing 737)",
             ),
         ]
     )

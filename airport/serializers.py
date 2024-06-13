@@ -68,7 +68,7 @@ class AirplaneListSerializer(serializers.ModelSerializer):
             "rows",
             "seats_in_row",
             "airplane_type",
-            "image"
+            "image",
         )
 
 
@@ -83,14 +83,17 @@ class AirplaneDetailSerializer(serializers.ModelSerializer):
             "rows",
             "seats_in_row",
             "airplane_type",
-            "image"
+            "image",
         )
 
 
 class AirplaneImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airplane
-        fields = ("id", "image",)
+        fields = (
+            "id",
+            "image",
+        )
 
 
 class RouteSerializer(serializers.ModelSerializer):
@@ -142,12 +145,9 @@ class FlightSerializer(serializers.ModelSerializer):
         # super() ensure that other validation logic is executed
         data = super(FlightSerializer, self).validate(attrs=attrs)
         Flight.validate_time(
-            attrs["departure_time"],
-            attrs["arrival_time"],
-            ValidationError
+            attrs["departure_time"], attrs["arrival_time"], ValidationError
         )
         return data
-
 
 
 class FlightListSerializer(FlightSerializer):
@@ -219,7 +219,8 @@ class OrderFlightSerializer(FlightSerializer):
     """
     This ser. like FlightListSerializer, without `route_info` field.
     That field was caused N+1 problem.
-     """
+    """
+
     airplane_name = serializers.CharField(
         source="airplane.name", read_only=True
     )
