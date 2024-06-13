@@ -75,8 +75,12 @@ def airplane_image_file_path(instance, filename):
 
 class Airplane(models.Model):
     name = models.CharField(max_length=255)
-    rows = models.IntegerField()
-    seats_in_row = models.IntegerField()
+    rows = models.SmallIntegerField(
+        validators=[MaxValueValidator(40), MinValueValidator(1)]
+    )
+    seats_in_row = models.SmallIntegerField(
+        validators=[MaxValueValidator(15), MinValueValidator(3)]
+    )
     airplane_type = models.ForeignKey(
         "AirplaneType", on_delete=models.CASCADE, related_name="airplanes"
     )
