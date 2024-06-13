@@ -18,6 +18,7 @@ class Flight(models.Model):
     )
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
+    crews = models.ManyToManyField("Crew")
 
     def __str__(self):
         return f"{self.route} arrived at {self.departure_time}"
@@ -181,4 +182,7 @@ class Crew(models.Model):
 
     @property
     def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    def __str__(self):
         return f"{self.first_name} {self.last_name}"
