@@ -157,7 +157,7 @@ class FlightViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
-    queryset = Flight.objects.select_related()
+    queryset = Flight.objects.select_related().prefetch_related("crews")
     serializer_class = FlightSerializer
 
     def get_serializer_class(self):
