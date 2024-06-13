@@ -139,7 +139,14 @@ class RouteDetailSerializer(RouteSerializer):
 class FlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
-        fields = ("id", "route", "airplane", "departure_time", "arrival_time")
+        fields = (
+            "id",
+            "route",
+            "airplane",
+            "departure_time",
+            "arrival_time",
+            "crews",
+        )
 
     def validate(self, attrs):
         # super() ensure that other validation logic is executed
@@ -156,6 +163,9 @@ class FlightListSerializer(FlightSerializer):
     airplane_name = serializers.CharField(
         source="airplane.name", read_only=True
     )
+    crews = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="full_name"
+    )
     all_tickets = serializers.IntegerField(
         source="airplane.all_places", read_only=True
     )
@@ -167,6 +177,7 @@ class FlightListSerializer(FlightSerializer):
             "id",
             "route_info",
             "airplane_name",
+            "crews",
             "departure_time",
             "arrival_time",
             "all_tickets",
@@ -199,6 +210,7 @@ class TicketSeatsSerializer(TicketSerializer):
 class FlightDetailSerializer(FlightSerializer):
     route = RouteListSerializer(many=False, read_only=True)
     airplane = AirplaneSerializer(many=False, read_only=True)
+    crews = CrewSerializer(many=True, read_only=True)
     taken_places = TicketSeatsSerializer(
         source="tickets", many=True, read_only=True
     )
@@ -209,6 +221,7 @@ class FlightDetailSerializer(FlightSerializer):
             "id",
             "route",
             "airplane",
+            "crews",
             "departure_time",
             "arrival_time",
             "taken_places",
