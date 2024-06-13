@@ -24,15 +24,16 @@ class Flight(models.Model):
 
     @staticmethod
     def validate_time(departure_time, arrival_time, error_to_raise):
-        if ((arrival_time - departure_time).total_seconds() > 86400  # 1 day = 86400 sec
-                or (arrival_time - departure_time).total_seconds() < 900):  # 15 min = 900 sec
+        flight_time = arrival_time - departure_time
+        if (
+            flight_time.total_seconds() > 86400  # 1 day = 86400 sec
+            or flight_time.total_seconds() < 900
+        ):  # 15 min = 900 sec
             raise error_to_raise("Time is not valid!")
 
     def clean(self):
         Flight.validate_time(
-            self.departure_time,
-            self.arrival_time,
-            ValidationError
+            self.departure_time, self.arrival_time, ValidationError
         )
 
     def save(
@@ -40,7 +41,7 @@ class Flight(models.Model):
         force_insert=False,
         force_update=False,
         using=None,
-        update_fields=None
+        update_fields=None,
     ):
         self.full_clean()
         return super(Flight, self).save(
@@ -145,7 +146,8 @@ class Ticket(models.Model):
 class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
