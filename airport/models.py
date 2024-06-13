@@ -4,6 +4,7 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 from rest_framework.serializers import ValidationError
+from django.core.exceptions import ValidationError
 
 from airport_api_service import settings
 
@@ -20,6 +21,31 @@ class Flight(models.Model):
 
     def __str__(self):
         return f"{self.route} arrived at {self.departure_time}"
+
+    @staticmethod
+    def validate_time(departure_time, arrival_time, error_to_raise):
+        if ((arrival_time - departure_time).total_seconds() > 86400  # 1 day = 86400 sec
+                or (arrival_time - departure_time).total_seconds() < 900):  # 15 min = 900 sec
+            raise error_to_raise("Time is not valid!")
+
+    def clean(self):
+        Flight.validate_time(
+            self.departure_time,
+            self.arrival_time,
+            ValidationError
+        )
+
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None
+    ):
+        self.full_clean()
+        return super(Flight, self).save(
+            force_insert, force_update, using, update_fields
+        )
 
 
 class Route(models.Model):
