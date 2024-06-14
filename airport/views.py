@@ -90,7 +90,7 @@ class OrderViewSet(
         if self.action == "list":
             return OrderListSerializer
 
-        return OrderSerializer
+        return self.serializer_class
 
 
 class AirplaneViewSet(
@@ -112,7 +112,7 @@ class AirplaneViewSet(
         if self.action == "upload_image":
             return AirplaneImageSerializer
 
-        return AirplaneSerializer
+        return self.serializer_class
 
     @action(
         methods=["POST"],
@@ -146,7 +146,7 @@ class RouteViewSet(
         if self.action == "retrieve":
             return RouteDetailSerializer
 
-        return RouteSerializer
+        return self.serializer_class
 
 
 class FlightViewSet(
@@ -165,7 +165,7 @@ class FlightViewSet(
         if self.action == "retrieve":
             return FlightDetailSerializer
 
-        return FlightSerializer
+        return self.serializer_class
 
     def get_queryset(self):
         queryset = self.queryset
@@ -239,4 +239,4 @@ class TicketViewSet(
         if self.action == "retrieve":
             return TicketDetailSerializer
 
-        return TicketSerializer
+        return self.serializer_class
