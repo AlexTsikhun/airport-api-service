@@ -4,26 +4,14 @@ from datetime import datetime
 
 from PIL import Image
 from django.contrib.auth import get_user_model
-from django.db.models import (
-    F,
-    Count
-)
+from django.db.models import F, Count
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from airport.models import (
-    Flight,
-    Route,
-    Airport,
-    Airplane,
-    AirplaneType
-)
-from airport.serializers import (
-    FlightListSerializer,
-    FlightDetailSerializer
-)
+from airport.models import Flight, Route, Airport, Airplane, AirplaneType, Crew
+from airport.serializers import FlightListSerializer, FlightDetailSerializer
 
 FLIGHT_URL = reverse("airport:flight-list")
 AIRPLANE_URL = reverse("airport:airplane-list")
@@ -49,33 +37,41 @@ def sample_route(**params):
 
 
 def sample_airplane_type(**params):
-    defaults = {
-        "name": "Big"
-    }
+    defaults = {"name": "Big"}
     defaults.update(params)
     return AirplaneType.objects.create(**defaults)
 
 
-def sample_airplane():
+def sample_airplane(**params):
     airplane_type = sample_airplane_type()
     defaults = {
         "name": "ANN",
         "rows": 10,
         "seats_in_row": 10,
-        "airplane_type": airplane_type
+        "airplane_type": airplane_type,
     }
+    defaults.update(params)
     return Airplane.objects.create(**defaults)
+
+
+def sample_crew(**params):
+    defaults = {"first_name": "John", "last_name": "Jones"}
+    defaults.update(params)
+    return Crew.objects.create(**defaults)
 
 
 def sample_flight(**params):
     route = sample_route()
     airplane = sample_airplane()
+    # can't add directly many-to-many field
+    # crew = sample_crew()
 
     defaults = {
         "route": route,
         "airplane": airplane,
-        "departure_time": "2024-06-09",
-        "arrival_time": "2024-06-25",
+        # "crews": crew,
+        "departure_time": "2024-06-13 21:53:16",
+        "arrival_time": "2024-06-13 23:53:16",
     }
     defaults.update(params)
 
@@ -95,10 +91,11 @@ def airplane_detail_url(flight_id):
     return reverse("airport:airplane-detail", args=[flight_id])
 
 
+# no need cause I use full time
 def convert_full_to_readable_date(datetime_str: str) -> str:
-    # convert str to date
-    original_date = datetime.strptime(datetime_str,
-                                      "%Y-%m-%dT%H:%M:%SZ")
+    """Convert str to date, then date to right format str"""
+
+    original_date = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%SZ")
 
     return original_date.strftime("%Y-%m-%d")
 
@@ -121,9 +118,12 @@ class AuthenticatedFlightApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
-    def test_list_flights(self):
-        sample_flight()
-        sample_flight()
+    def test_list_flights_with_crew(self):
+        crew = sample_crew()
+
+        flight = sample_flight()
+
+        flight.crews.add(crew)
 
         res = self.client.get(FLIGHT_URL)
 
@@ -139,22 +139,37 @@ class AuthenticatedFlightApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    def test_filter_flight_by_departure_time(self):
+    def test_filter_flight_with_crew_by_departure_time(self):
+        crew1 = sample_crew()
+        crew2 = sample_crew()
+
         airplane = sample_airplane()
 
         flight1 = sample_flight(airplane=airplane)
-        sample_flight(airplane=airplane, departure_time="2024-06-10")
-        sample_flight()
+        flight2 = sample_flight(airplane=airplane,
+                                departure_time="2024-06-12 21:53:16",
+                                arrival_time="2024-06-12 23:53:16")
 
-        flights = Flight.objects.annotate(
-            tickets_available=(
-                F("airplane__rows") * F("airplane__seats_in_row")
-                - Count("tickets")
+        flight1.crews.add(crew1)
+        flight2.crews.add(crew2)
+
+        flights = (
+            Flight.objects.annotate(
+                tickets_available=(
+                    F("airplane__rows") * F("airplane__seats_in_row")
+                    - Count("tickets")
+                )
             )
-        ).order_by("id").filter(departure_time=flight1.departure_time)
+            .order_by("id")
+            # filter with full-format data
+            .filter(departure_time=flight1.departure_time)
+        )
 
         res = self.client.get(
-            FLIGHT_URL, {"departure_time": "2024-06-09"}  # error with it f"{flight1.departure_time}"}
+            FLIGHT_URL,
+            {
+                "departure_time": "2024-06-13"
+            },
         )
 
         serializer1 = FlightListSerializer(flights, many=True)
@@ -164,38 +179,48 @@ class AuthenticatedFlightApiTests(TestCase):
     def test_filter_flight_by_arrival_time(self):
         airplane = sample_airplane()
 
-        sample_flight(airplane=airplane, arrival_time="2024-06-25")
+        sample_flight(airplane=airplane,
+                                departure_time="2024-06-13 20:53:16",
+                                arrival_time="2024-06-13 22:51:16")
         sample_flight(airplane=airplane)
         sample_flight()
 
-        flights = Flight.objects.annotate(
-            tickets_available=(
-                F("airplane__rows") * F("airplane__seats_in_row")
-                - Count("tickets")
+        flights = (
+            Flight.objects.annotate(
+                tickets_available=(
+                    F("airplane__rows") * F("airplane__seats_in_row")
+                    - Count("tickets")
+                )
             )
-        ).order_by("id").filter(arrival_time="2024-06-25")
-
-        res = self.client.get(
-            FLIGHT_URL, {"arrival_time": "2024-06-25"}
+            .order_by("id")
+            .filter(arrival_time__date="2024-06-13")
         )
+
+        res = self.client.get(FLIGHT_URL, {"arrival_time": "2024-06-13"})
 
         serializer1 = FlightListSerializer(flights, many=True)
 
         self.assertEqual(serializer1.data, res.data)
 
     def test_filter_flights_by_airplane_name(self):
-        airplane = sample_airplane()
+        airplane = sample_airplane(name="Boeing")
 
-        sample_flight(airplane=airplane, arrival_time="2024-06-25")
+        sample_flight(airplane=airplane,
+                      departure_time="2024-06-25 06:51:16",
+                      arrival_time="2024-06-25 12:51:16")
         sample_flight(airplane=airplane)
         sample_flight()
 
-        flights = Flight.objects.annotate(
-            tickets_available=(
-                F("airplane__rows") * F("airplane__seats_in_row")
-                - Count("tickets")
+        flights = (
+            Flight.objects.annotate(
+                tickets_available=(
+                    F("airplane__rows") * F("airplane__seats_in_row")
+                    - Count("tickets")
+                )
             )
-        ).order_by("id").filter(airplane__name__icontains="Boeing")
+            .order_by("id")
+            .filter(airplane__name__icontains="Boeing")
+        )
 
         res = self.client.get(FLIGHT_URL, {"airplane": "Boeing"})
 
@@ -208,8 +233,6 @@ class AuthenticatedFlightApiTests(TestCase):
 
         url = detail_url(flight.id)
         res = self.client.get(url)
-        res.data["arrival_time"] = convert_full_to_readable_date(res.data["arrival_time"])
-        res.data["departure_time"] = convert_full_to_readable_date(res.data["departure_time"])
 
         serializer = FlightDetailSerializer(flight)
 
@@ -217,9 +240,7 @@ class AuthenticatedFlightApiTests(TestCase):
         self.assertEqual(res.data, serializer.data)
 
     def test_create_flight_forbidden(self):
-        payload = {
-            "route": "Some fictitious data for test"
-        }
+        payload = {"route": "Some fictitious data for test"}
         res = self.client.post(FLIGHT_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
@@ -236,12 +257,14 @@ class AdminAirplaneApiTests(TestCase):
     def test_create_flight(self):
         route = sample_route()
         airplane = sample_airplane()
+        crews = sample_crew()
 
         payload = {
             "route": 1,
             "airplane": airplane.id,
-            "departure_time": "2024-06-09",
-            "arrival_time": "2024-06-25",
+            "crews": crews.id,
+            "departure_time": "2024-06-13 21:53:16",
+            "arrival_time": "2024-06-13 23:53:16",
         }
         res = self.client.post(FLIGHT_URL, payload)
 
@@ -336,9 +359,7 @@ class AirplaneImageUploadTests(TestCase):
         self.assertIn("image", res.data[0].keys())
 
     def test_put_airplane_not_allowed(self):
-        payload = {
-            "route": "Some fictitious data for test"
-        }
+        payload = {"route": "Some fictitious data for test"}
 
         airplane = sample_airplane()
         url = detail_url(airplane.id)
