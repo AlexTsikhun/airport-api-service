@@ -63,13 +63,10 @@ def sample_crew(**params):
 def sample_flight(**params):
     route = sample_route()
     airplane = sample_airplane()
-    # can't add directly many-to-many field
-    # crew = sample_crew()
 
     defaults = {
         "route": route,
         "airplane": airplane,
-        # "crews": crew,
         "departure_time": "2024-06-13 21:53:16",
         "arrival_time": "2024-06-13 23:53:16",
     }
@@ -91,7 +88,6 @@ def airplane_detail_url(flight_id):
     return reverse("airport:airplane-detail", args=[flight_id])
 
 
-# no need cause I use full time
 def convert_full_to_readable_date(datetime_str: str) -> str:
     """Convert str to date, then date to right format str"""
 
@@ -127,7 +123,6 @@ class AuthenticatedFlightApiTests(TestCase):
 
         res = self.client.get(FLIGHT_URL)
 
-        # this is my queryset
         flights = Flight.objects.annotate(
             tickets_available=(
                 F("airplane__rows") * F("airplane__seats_in_row")
@@ -161,7 +156,6 @@ class AuthenticatedFlightApiTests(TestCase):
                 )
             )
             .order_by("id")
-            # filter with full-format data
             .filter(departure_time=flight1.departure_time)
         )
 
@@ -314,7 +308,6 @@ class AirplaneImageUploadTests(TestCase):
     def test_post_image_to_airplane_list_should_not_work(self):
         url = AIRPLANE_URL
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
-            # related for "airplane_type": 1,
             sample_airplane_type()
 
             img = Image.new("RGB", (10, 10))
@@ -333,7 +326,7 @@ class AirplaneImageUploadTests(TestCase):
             )
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        airplane = Airplane.objects.filter(name="ANN")[0]  # or first()
+        airplane = Airplane.objects.filter(name="ANN")[0]
         self.assertFalse(airplane.image)
 
     def test_image_url_is_shown_on_airplane_detail(self):

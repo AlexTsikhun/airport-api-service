@@ -9,6 +9,8 @@ The Airport API service provides information about and manages airports, flights
 - [Getting access](#getting-access)
 - [Technologies Used](#technologies-used)
 - [Features](#features)
+- [DB Structure](#db-structure)
+- [An example of using the API](#an-example-of-using-the-api)
 
 ## Installation
 
@@ -64,6 +66,7 @@ and can't exceed 1 day)
 
 
 #### DB Structure:
+
 ![airplane_db.png](images%2Fairplane_db.png)
 
 ### An example of using the API

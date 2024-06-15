@@ -27,8 +27,8 @@ class Flight(models.Model):
     def validate_time(departure_time, arrival_time, error_to_raise):
         flight_time = arrival_time - departure_time
         if (
-            flight_time.total_seconds() > 86400  # 1 day = 86400 sec
-            or flight_time.total_seconds() < 900  # 15 min = 900 sec
+            flight_time.total_seconds() > 86400
+            or flight_time.total_seconds() < 900
         ):
             raise error_to_raise("Time is not valid!")
 
@@ -63,7 +63,6 @@ class Route(models.Model):
     )
 
     def __str__(self):
-        # here I don't need source.name, just source
         return f"{self.source.name}-{self.destination}"
 
 

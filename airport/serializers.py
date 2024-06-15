@@ -15,7 +15,7 @@ from airport.models import (
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
-    class Meta:  # don't need detail page, simple model no need
+    class Meta:
         model = AirplaneType
         fields = (
             "id",
@@ -119,7 +119,7 @@ class RouteListSerializer(RouteSerializer):
 class RouteDetailSerializer(RouteSerializer):
     source = AirportSerializer(
         many=False,
-        read_only=True,  # 'Airport' object is not iterable if many=True
+        read_only=True,
     )
     destination = AirportSerializer(
         many=False,
@@ -149,7 +149,6 @@ class FlightSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
-        # super() ensure that other validation logic is executed
         data = super(FlightSerializer, self).validate(attrs=attrs)
         Flight.validate_time(
             attrs["departure_time"], attrs["arrival_time"], ValidationError
@@ -158,7 +157,6 @@ class FlightSerializer(serializers.ModelSerializer):
 
 
 class FlightListSerializer(FlightSerializer):
-    # source and dest (__str__)
     route_info = serializers.CharField(source="route", read_only=True)
     airplane_name = serializers.CharField(
         source="airplane.name", read_only=True
@@ -191,14 +189,14 @@ class TicketSerializer(serializers.ModelSerializer):
         Ticket.validate_ticket(
             attrs["row"],
             attrs["seat"],
-            attrs["flight"].airplane,  # seats_in_row
+            attrs["flight"].airplane,
             ValidationError,
         )
         return data
 
     class Meta:
         model = Ticket
-        fields = ("id", "row", "seat", "flight")  # no need order field
+        fields = ("id", "row", "seat", "flight")
 
 
 class TicketSeatsSerializer(TicketSerializer):
