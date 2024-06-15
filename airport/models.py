@@ -18,7 +18,7 @@ class Flight(models.Model):
     )
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
-    crews = models.ManyToManyField("Crew")
+    crews = models.ManyToManyField("Crew", related_name="flights")
 
     def __str__(self):
         return f"{self.route} arrived at {self.departure_time}"
@@ -154,6 +154,7 @@ class Order(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        related_name="orders"
     )
 
     def __str__(self):
