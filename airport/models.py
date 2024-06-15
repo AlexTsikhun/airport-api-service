@@ -52,11 +52,11 @@ class Flight(models.Model):
 
 class Route(models.Model):
     source = models.ForeignKey(
-        "Airport", on_delete=models.CASCADE, related_name="routes"
+        "Airport", on_delete=models.CASCADE, related_name="source_routes"
     )
     destination = models.ForeignKey(
         "Airport",
-        on_delete=models.CASCADE,  # or rename rel_name?
+        on_delete=models.CASCADE, related_name="destination_routes"
     )
     distance = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(17_000), MinValueValidator(19)]
@@ -83,7 +83,7 @@ class Airplane(models.Model):
         validators=[MaxValueValidator(15), MinValueValidator(3)]
     )
     airplane_type = models.ForeignKey(
-        "AirplaneType", on_delete=models.CASCADE, related_name="airplanes"
+        "AirplaneType", on_delete=models.CASCADE, related_name="airplanes",
     )
     image = models.ImageField(null=True, upload_to=airplane_image_file_path)
 
