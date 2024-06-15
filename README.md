@@ -61,3 +61,51 @@ docker compose up
 20-40 rows. Flight time can't be less than world`s shortest international flight route with
 passengers - 10-15 minutes (19km, between the Caribbean islands of Sint Maarten and Anguilla)
 and can't exceed 1 day)
+
+
+#### DB Structure:
+![airplane_db.png](images%2Fairplane_db.png)
+
+### An example of using the API
+
+A list of some of the main endpoints
+
+Created order:
+
+![created_order](images/created_order.png)
+
+Constraint order:
+
+![constraint_order](images/constraint_order.png)
+
+Paginated orders:
+
+![pagination-order](images/pagination-order.png)
+
+Flights:
+
+![flights](images/flights.png)
+
+Flight details:
+
+![flight-detail](images/flight-detail.png)
+
+Route details:
+
+![route-detail](images/route-detail.png)
+
+Airplane list:
+
+![airplane-list](images/airplane-list.png)
+
+Airplane details:
+
+![airplane-detail](images/airplane-detail.png)
+
+Airport list:
+
+![airport-list](images/airport-list.png)
+
+Crew:
+
+![crew](images/crew.png)
