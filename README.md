@@ -1,6 +1,6 @@
 # Airport API Service
 
-The Airport API service provides information about and manages airports, flights, and aircraft.
+The Airport API service provides information about and manages airports, flights, and aircraft. Written in Django Rest Framework
 
 ## Table of Contents
 
